@@ -100,6 +100,19 @@ object CatsTypeClasses {
   import cats.syntax.traverse.*
   val optionList_v2: Option[List[Int]] = List(1,2,3).traverse(x => Option(x))
 
+  /*
+    Big(ger) type class hierarchy in Cats:
+
+      Semigroup -> Monoid
+
+      Semigroupal -> Apply -> FlatMap -->
+                  /        \             \
+      Functor --->          Applicative -> Monad ---------> MonadError
+         |                              \                 /
+         |                               ApplicativeError
+         |
+         ----> Traverse
+   */
   def main(args: Array[String]): Unit = {
 
   }
