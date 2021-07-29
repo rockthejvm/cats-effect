@@ -20,9 +20,9 @@ object CancellingIOs extends IOApp.Simple {
   // payment process must NOT be canceled
   val specialPaymentSystem = (
     IO("Payment running, don't cancel me...").debug >>
-      IO.sleep(1.second) >>
-      IO("Payment completed.").debug
-    ).onCancel(IO("MEGA CANCEL OF DOOM!").debug.void)
+    IO.sleep(1.second) >>
+    IO("Payment completed.").debug
+  ).onCancel(IO("MEGA CANCEL OF DOOM!").debug.void)
 
   val cancellationOfDoom = for {
     fib <- specialPaymentSystem.start
@@ -58,7 +58,7 @@ object CancellingIOs extends IOApp.Simple {
       pw <- poll(inputPassword).onCancel(IO("Authentication timed out. Try again later.").debug.void) // this is cancelable
       verified <- verifyPassword(pw) // this is NOT cancelable
       _ <- if (verified) IO("Authentication successful.").debug // this is NOT cancelable
-      else IO("Authentication failed.").debug
+           else IO("Authentication failed.").debug
     } yield ()
   }
 
@@ -74,7 +74,10 @@ object CancellingIOs extends IOApp.Simple {
    */
 
   /**
-   * Exercises
+   * Exercises: what do you think the following effects will do?
+   * 1. Anticipate
+   * 2. Run to see if you're correct
+   * 3. Prove your theory
    */
   // 1
   val cancelBeforeMol = IO.canceled >> IO(42).debug
@@ -87,13 +90,16 @@ object CancellingIOs extends IOApp.Simple {
     _ <- IO.sleep(1.seconds) >> IO("Authentication timeout, attempting cancel...").debug >> authFib.cancel
     _ <- authFib.join
   } yield ()
+  /*
+    Lesson: Uncancelable calls are masks which suppress all existing cancelable gaps (including from a previous uncancelable).
+   */
 
   // 3
   def threeStepProgram(): IO[Unit] = {
     val sequence = IO.uncancelable { poll =>
       poll(IO("cancelable").debug >> IO.sleep(1.second) >> IO("cancelable end").debug) >>
-        IO("uncancelable").debug >> IO.sleep(1.second) >> IO("uncancelable end").debug >>
-        poll(IO("second cancelable").debug >> IO.sleep(1.second) >> IO("second cancelable end").debug)
+      IO("uncancelable").debug >> IO.sleep(1.second) >> IO("uncancelable end").debug >>
+      poll(IO("second cancelable").debug >> IO.sleep(1.second) >> IO("second cancelable end").debug)
     }
 
     for {
@@ -102,6 +108,9 @@ object CancellingIOs extends IOApp.Simple {
       _ <- fib.join
     } yield ()
   }
+  /*
+    Lesson: Uncancelable regions ignore cancellation signals, but that doesn't mean the next CANCELABLE region won't take them.
+   */
 
 
   override def run = threeStepProgram()
