@@ -1,12 +1,11 @@
 package com.rockthejvm.part3concurrency
 
 import cats.effect.{IO, IOApp}
-
-import scala.concurrent.duration.*
+import scala.concurrent.duration._
 
 object CancellingIOs extends IOApp.Simple {
 
-  import com.rockthejvm.utils.*
+  import com.rockthejvm.utils._
 
   /*
     Cancelling IOs
@@ -21,9 +20,9 @@ object CancellingIOs extends IOApp.Simple {
   // payment process must NOT be canceled
   val specialPaymentSystem = (
     IO("Payment running, don't cancel me...").debug >>
-    IO.sleep(1.second) >>
-    IO("Payment completed.").debug
-  ).onCancel(IO("MEGA CANCEL OF DOOM!").debug.void)
+      IO.sleep(1.second) >>
+      IO("Payment completed.").debug
+    ).onCancel(IO("MEGA CANCEL OF DOOM!").debug.void)
 
   val cancellationOfDoom = for {
     fib <- specialPaymentSystem.start
@@ -59,7 +58,7 @@ object CancellingIOs extends IOApp.Simple {
       pw <- poll(inputPassword).onCancel(IO("Authentication timed out. Try again later.").debug.void) // this is cancelable
       verified <- verifyPassword(pw) // this is NOT cancelable
       _ <- if (verified) IO("Authentication successful.").debug // this is NOT cancelable
-           else IO("Authentication failed.").debug
+      else IO("Authentication failed.").debug
     } yield ()
   }
 
@@ -74,5 +73,36 @@ object CancellingIOs extends IOApp.Simple {
     Poll calls are "gaps opened" in the uncancelable region.
    */
 
-  override def run = authProgram
+  /**
+   * Exercises
+   */
+  // 1
+  val cancelBeforeMol = IO.canceled >> IO(42).debug
+  val uncancelableMol = IO.uncancelable(_ => IO.canceled >> IO(42).debug)
+  // uncancelable will eliminate ALL cancel points
+
+  // 2
+  val invincibleAuthProgram = for {
+    authFib <- IO.uncancelable(_ => authFlow).start
+    _ <- IO.sleep(1.seconds) >> IO("Authentication timeout, attempting cancel...").debug >> authFib.cancel
+    _ <- authFib.join
+  } yield ()
+
+  // 3
+  def threeStepProgram(): IO[Unit] = {
+    val sequence = IO.uncancelable { poll =>
+      poll(IO("cancelable").debug >> IO.sleep(1.second) >> IO("cancelable end").debug) >>
+        IO("uncancelable").debug >> IO.sleep(1.second) >> IO("uncancelable end").debug >>
+        poll(IO("second cancelable").debug >> IO.sleep(1.second) >> IO("second cancelable end").debug)
+    }
+
+    for {
+      fib <- sequence.start
+      _ <- IO.sleep(1500.millis) >> IO("CANCELING").debug >> fib.cancel
+      _ <- fib.join
+    } yield ()
+  }
+
+
+  override def run = threeStepProgram()
 }
