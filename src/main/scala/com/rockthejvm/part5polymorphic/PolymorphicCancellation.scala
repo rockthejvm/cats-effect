@@ -15,7 +15,7 @@ object PolymorphicCancellation extends IOApp.Simple {
 
   trait MyMonadError[F[_], E] extends MyApplicativeError[F, E] with Monad[F]
 
-  // MonadCancel
+  // MonadCancel describes the capability to cancel & prevent cancellation
 
   trait MyPoll[F[_]] {
     def apply[A](fa: F[A]): F[A]
@@ -29,7 +29,7 @@ object PolymorphicCancellation extends IOApp.Simple {
   // monadCancel for IO
   val monadCancelIO: MonadCancel[IO, Throwable] = MonadCancel[IO]
 
-  // we can create values
+  // we can create values, because MonadCancel is a Monad
   val molIO: IO[Int] = monadCancelIO.pure(42)
   val ambitiousMolIO: IO[Int] = monadCancelIO.map(molIO)(_ * 10)
 
@@ -43,7 +43,7 @@ object PolymorphicCancellation extends IOApp.Simple {
   import cats.syntax.flatMap._ // flatMap
   import cats.syntax.functor._ // map
 
-  // can generalize code
+  // goal: can generalize code
   def mustComputeGeneral[F[_], E](using mc: MonadCancel[F, E]): F[Int] = mc.uncancelable { _ =>
     for {
       _ <- mc.pure("once started, I can't go back...")
@@ -72,9 +72,10 @@ object PolymorphicCancellation extends IOApp.Simple {
   } { value =>
     IO("releasing the meaning of life...").void
   }
+  // therefore Resources can only be built in the presence of a MonadCancel instance
 
   /**
-   * Exercise - generalize a piece of code
+   * Exercise - generalize a piece of code (the auth-flow example from the Cancellation lesson)
    */
   import com.rockthejvm.utils.general._
   import scala.concurrent.duration._
