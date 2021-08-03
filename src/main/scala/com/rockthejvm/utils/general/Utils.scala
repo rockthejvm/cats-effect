@@ -12,7 +12,7 @@ extension [F[_], A](fa: F[A]) {
     println(s"[$t] $a")
     a
   }
-
-  def unsafeSleep[E](duration: FiniteDuration)(using mc: MonadCancel[F, E]): F[Unit] =
-    mc.pure(Thread.sleep(duration.toMillis))
 }
+
+def unsafeSleep[F[_], E](duration: FiniteDuration)(using mc: MonadCancel[F, E]): F[Unit] =
+  mc.pure(Thread.sleep(duration.toMillis))
