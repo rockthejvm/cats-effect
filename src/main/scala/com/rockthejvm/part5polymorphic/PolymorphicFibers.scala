@@ -22,7 +22,7 @@ object PolymorphicFibers extends IOApp.Simple {
   val mol = IO(42)
   val fiber: IO[Fiber[IO, Throwable, Int]] = mol.start
 
-  // pure, map/flatMap, raiseError, uncancelable, start
+  // capabilities: pure, map/flatMap, raiseError, uncancelable, start
 
   val spawnIO = Spawn[IO] // fetch the given/implicit Spawn[IO]
 
@@ -45,7 +45,7 @@ object PolymorphicFibers extends IOApp.Simple {
   val molOnFiber_v2 = effectOnSomeThread(mol)
 
   /**
-   * Exercise - generalize the following code
+   * Exercise - generalize the following code (race implementation from the Racing lesson)
    */
 
   def ioRace[A, B](ioa: IO[A], iob: IO[B]): IO[Either[A, B]] =
@@ -91,6 +91,8 @@ object PolymorphicFibers extends IOApp.Simple {
         }
       }
     }
+  // beware this is a simple implementation - certain cases are not taken into account
+  // (which would make the code more complicated)
 
   import scala.concurrent.duration._
   import com.rockthejvm.utils.general._
