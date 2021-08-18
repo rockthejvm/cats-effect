@@ -31,7 +31,8 @@ The repository has tags for intermediate states of the code. This is useful to k
 * `2.4-io-exercises`
 * `2.5-io-error-handling`
 * `2.6-io-apps`
-* `2.7-io-parallelism-traversal`
+* `2.7-io-parallelism`
+* `2.8-io-traversal`
 * `3.1-fibers`
 * `3.2-fibers-exercise`
 * `3.4-bracket`
@@ -41,7 +42,7 @@ The repository has tags for intermediate states of the code. This is useful to k
 * `3.8-io-cancellation-exercises`
 * `3.9-io-blocking`
 * `3.10-io-async`
-* `4.1-red`
+* `4.1-ref`
 * `4.3-deferred`
 * `4.4-deferred-exercises`
 * `4.5-mutex`
